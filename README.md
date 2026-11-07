@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Simple Spring Boot CRUD Application
 
 A comprehensive Spring Boot application demonstrating CRUD operations with REST API, JPA, H2 database, and extensive testing.
