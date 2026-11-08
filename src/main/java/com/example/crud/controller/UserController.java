@@ -1,5 +1,6 @@
 package com.example.crud.controller;
 
+import com.example.crud.dto.UserCreateRequest;
 import com.example.crud.dto.UserDTO;
 import com.example.crud.service.UserService;
 import jakarta.validation.Valid;
@@ -56,8 +57,8 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, Object>> createUser(@Valid @RequestBody UserDTO userDTO) {
-        UserDTO createdUser = userService.createUser(userDTO);
+    public ResponseEntity<Map<String, Object>> createUser(@Valid @RequestBody UserCreateRequest request) {
+        UserDTO createdUser = userService.createUser(request);
         Map<String, Object> response = new HashMap<>();
         response.put("message", "User created successfully");
         response.put("user", createdUser);

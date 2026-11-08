@@ -75,7 +75,7 @@ class UserControllerTest {
         UserDTO outputDTO = new UserDTO(1L, "John Doe", "john@example.com", "010-1234-5678", 
                                        LocalDateTime.now(), LocalDateTime.now());
 
-        when(userService.createUser(any(UserDTO.class))).thenReturn(outputDTO);
+        when(userService.createUser(any(com.example.crud.dto.UserCreateRequest.class))).thenReturn(outputDTO);
 
         mockMvc.perform(post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -85,7 +85,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.message").value("User created successfully"))
                 .andExpect(jsonPath("$.user.name").value("John Doe"));
 
-        verify(userService).createUser(any(UserDTO.class));
+        verify(userService).createUser(any(com.example.crud.dto.UserCreateRequest.class));
     }
 
     @Test
@@ -100,7 +100,7 @@ class UserControllerTest {
                 .content(objectMapper.writeValueAsString(inputDTO)))
                 .andExpect(status().isBadRequest());
 
-        verify(userService, never()).createUser(any(UserDTO.class));
+        verify(userService, never()).createUser(any(com.example.crud.dto.UserCreateRequest.class));
     }
 
     @Test

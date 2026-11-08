@@ -1,5 +1,6 @@
 package com.example.crud.service;
 
+import com.example.crud.dto.UserCreateRequest;
 import com.example.crud.dto.UserDTO;
 import com.example.crud.entity.User;
 import com.example.crud.exception.UserNotFoundException;
@@ -52,15 +53,26 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    public UserDTO createUser(UserDTO userDTO) {
+    /*public UserDTO createUser(UserDTO userDTO) {
         if (userRepository.existsByEmail(userDTO.getEmail())) {
             throw new IllegalArgumentException("User with email " + userDTO.getEmail() + " already exists");
         }
 
-        userRepository.
-
         User user = convertToEntity(userDTO);
         User savedUser = userRepository.save(user);
+        return convertToDTO(savedUser);
+    }*/
+
+    public UserDTO createUser(UserCreateRequest request) {
+
+        User user = new User();
+
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+        user.setPhone(request.getPhone());
+
+        User savedUser = userRepository.save(user);
+
         return convertToDTO(savedUser);
     }
 

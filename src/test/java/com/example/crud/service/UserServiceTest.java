@@ -1,5 +1,6 @@
 package com.example.crud.service;
 
+import com.example.crud.dto.UserCreateRequest;
 import com.example.crud.dto.UserDTO;
 import com.example.crud.entity.User;
 import com.example.crud.exception.UserNotFoundException;
@@ -31,6 +32,7 @@ class UserServiceTest {
 
     private User testUser;
     private UserDTO testUserDTO;
+    private UserCreateRequest Request;
 
     @BeforeEach
     void setUp() {
@@ -83,7 +85,7 @@ class UserServiceTest {
         when(userRepository.existsByEmail(testUserDTO.getEmail())).thenReturn(false);
         when(userRepository.save(any(User.class))).thenReturn(testUser);
 
-        UserDTO result = userService.createUser(testUserDTO);
+        UserDTO result = userService.createUser(Request);
 
         assertNotNull(result);
         assertEquals("John Doe", result.getName());
@@ -95,7 +97,7 @@ class UserServiceTest {
     void createUser_WhenEmailAlreadyExists_ShouldThrowException() {
         when(userRepository.existsByEmail(testUserDTO.getEmail())).thenReturn(true);
 
-        assertThrows(IllegalArgumentException.class, () -> userService.createUser(testUserDTO));
+        assertThrows(IllegalArgumentException.class, () -> userService.createUser(Request));
         verify(userRepository).existsByEmail(testUserDTO.getEmail());
         verify(userRepository, never()).save(any(User.class));
     }
