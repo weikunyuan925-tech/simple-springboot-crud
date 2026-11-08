@@ -57,6 +57,8 @@ public class UserService {
             throw new IllegalArgumentException("User with email " + userDTO.getEmail() + " already exists");
         }
 
+        userRepository.
+
         User user = convertToEntity(userDTO);
         User savedUser = userRepository.save(user);
         return convertToDTO(savedUser);
