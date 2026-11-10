@@ -111,12 +111,4 @@ public class UserService {
         );
     }
 
-    private User convertToEntity(UserDTO userDTO) {
-        User user = new User();
-        user.setId(userDTO.getId());
-        user.setName(userDTO.getName());
-        user.setEmail(userDTO.getEmail());
-        user.setPhone(userDTO.getPhone());
-        return user;
-    }
 }
