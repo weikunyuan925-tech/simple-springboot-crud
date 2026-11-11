@@ -14,6 +14,7 @@ public class UserCreateRequest {
     @Email
     private String email;
 
+    @NotBlank
     @Size(max = 15)
     private String phone;
 

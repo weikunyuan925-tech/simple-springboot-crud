@@ -17,6 +17,7 @@ public class UserDTO {
     @Email(message = "Email should be valid")
     private String email;
 
+    @NotBlank(message = "Phone number is required")
     @Size(max = 15, message = "Phone number cannot exceed 15 characters")
     private String phone;
 
