@@ -3,6 +3,7 @@ package com.example.crud.service;
 import com.example.crud.dto.UserCreateRequest;
 import com.example.crud.dto.UserDTO;
 import com.example.crud.entity.User;
+import com.example.crud.exception.EmailAlreadyExistsException;
 import com.example.crud.exception.UserNotFoundException;
 import com.example.crud.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +66,9 @@ public class UserService {
 
     public UserDTO createUser(UserCreateRequest request) {
 
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new EmailAlreadyExistsException("邮箱已注册");
+        }
         User user = new User();
 
         user.setName(request.getName());
