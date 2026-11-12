@@ -16,8 +16,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     boolean existsByEmail(String email);
     
-    @Query("SELECT u FROM User u WHERE u.name LIKE %:name%")
-    List<User> findByNameContaining(@Param("name") String name);
+    /*@Query("SELECT u FROM User u WHERE u.name LIKE %:name%")
+    List<User> findByNameContaining(@Param("name") String name);*/
+
+    //ESCAPE '!' 告诉数据库：! 后面的 % 或 _ 是普通字符，而不是通配符
+    @Query("SELECT u FROM User u WHERE u.name LIKE :pattern ESCAPE '!'")
+    List<User> searchByNamePattern(@Param("pattern") String pattern);
     
     @Query("SELECT u FROM User u ORDER BY u.createdAt DESC")
     List<User> findAllOrderByCreatedAtDesc();

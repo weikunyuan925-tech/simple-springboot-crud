@@ -46,12 +46,40 @@ public class UserService {
         return convertToDTO(user);
     }
 
-    @Transactional(readOnly = true)
+    /*@Transactional(readOnly = true)
     public List<UserDTO> searchUsersByName(String name) {
         return userRepository.findByNameContaining(name)
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }*/
+
+    @Transactional(readOnly = true)
+    public List<UserDTO> searchUsersByName(String name) {
+
+        // 防止空搜索条件导致返回全部用户
+        if (name == null || name.isBlank()) {
+            return List.of();
+        }
+
+        // 转义 LIKE 特殊字符
+        String escapedName = escapeLikeWildcards(name);
+
+        // 保留普通的前后模糊匹配
+        String pattern = "%" + escapedName + "%";
+
+        return userRepository.searchByNamePattern(pattern)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+       //! 是定义的转义字符，所以必须先转义它本身，避免后续产生的转义字符再次被处理。
+    private String escapeLikeWildcards(String value) {
+
+        return value
+                .replace("!", "!!")
+                .replace("%", "!%")
+                .replace("_", "!_");
     }
 
     /*public UserDTO createUser(UserDTO userDTO) {
@@ -84,9 +112,8 @@ public class UserService {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
 
-        if (!existingUser.getEmail().equals(userDTO.getEmail()) && 
-            userRepository.existsByEmail(userDTO.getEmail())) {
-            throw new IllegalArgumentException("User with email " + userDTO.getEmail() + " already exists");
+        if (userRepository.existsByEmail(userDTO.getEmail())) {
+            throw new EmailAlreadyExistsException("邮箱已注册");
         }
 
         existingUser.setName(userDTO.getName());

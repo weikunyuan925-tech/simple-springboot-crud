@@ -13,6 +13,7 @@ public class UserCreateRequest {
 
     @NotBlank
     @Email
+    @Size(max = 255, message = "邮箱长度不能超过255个字符")
     private String email;
 
     @NotBlank(message = "手机号不能为空")
