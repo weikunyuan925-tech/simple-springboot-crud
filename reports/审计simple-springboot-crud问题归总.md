@@ -309,3 +309,30 @@ Bean Validation 可以一次收集多个字段的校验错误，不是第一个�
 
 
 
+## 9.**IntelliJ IDEA 与 Maven 集成配置及 Spring Boot 进程管理问题。**
+
+### **1. 问题表现**
+
+- IDEA 编译时提示找不到 `org.junit.jupiter.api`。
+- Maven 可以正常编译和运行项目。
+- IDEA 点击停止后，Java 进程没有完全退出。
+- 再次启动时提示 8080 端口被占用。
+
+### **2. 主要原因**
+
+1. **依赖识别问题：** IDEA 自身的编译环境没有正确识别 Maven 的测试依赖。
+2. **运行配置问题：** IDEA 通过 `exec-maven-plugin` 启动 Java 子进程，停止时可能没有正确清理子进程。
+3. **端口冲突：** 旧的 Spring Boot 实例仍占用 8080，导致新实例启动失败。
+
+### **3. 解决方向**
+
+- 保留 Maven 委托构建，保证 JUnit 5 正常识别。
+- 使用正确的 Spring Boot Maven 启动配置。
+- 确保停止应用时能够释放 Java 进程和 8080 端口。
+
+### **4. 问题性质**
+
+这属于**开发工具环境配置问题（IDE / Maven Integration & Process Management）**，不是 Spring Boot 业务代码漏洞，也不是 Jackson 配置错误。
+
+**学习价值：** 理解 IDEA、Maven、Java 子进程和 Spring Boot 应用之间的构建、启动及停止关系。
+

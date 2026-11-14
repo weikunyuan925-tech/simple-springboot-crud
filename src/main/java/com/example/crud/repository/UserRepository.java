@@ -25,4 +25,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     @Query("SELECT u FROM User u ORDER BY u.createdAt DESC")
     List<User> findAllOrderByCreatedAtDesc();
+
+    List<User> findByNameContaining(String name);
 }

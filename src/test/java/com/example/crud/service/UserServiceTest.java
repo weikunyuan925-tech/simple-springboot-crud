@@ -3,6 +3,7 @@ package com.example.crud.service;
 import com.example.crud.dto.UserCreateRequest;
 import com.example.crud.dto.UserDTO;
 import com.example.crud.entity.User;
+import com.example.crud.exception.EmailAlreadyExistsException;
 import com.example.crud.exception.UserNotFoundException;
 import com.example.crud.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +27,8 @@ class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+    private UserCreateRequest request;
+
 
     @InjectMocks
     private UserService userService;
@@ -45,6 +48,12 @@ class UserServiceTest {
         testUserDTO.setName("John Doe");
         testUserDTO.setEmail("john@example.com");
         testUserDTO.setPhone("010-1234-5678");
+        // 初始化创建用户请求对象
+        request = new UserCreateRequest();
+
+        request.setName("John Doe");
+        request.setEmail("john@example.com");
+        request.setPhone("010-1234-5678");
     }
 
     @Test
@@ -80,7 +89,7 @@ class UserServiceTest {
         verify(userRepository).findById(1L);
     }
 
-    @Test
+    /*@Test
     void createUser_WhenEmailNotExists_ShouldCreateUser() {
         when(userRepository.existsByEmail(testUserDTO.getEmail())).thenReturn(false);
         when(userRepository.save(any(User.class))).thenReturn(testUser);
@@ -91,15 +100,69 @@ class UserServiceTest {
         assertEquals("John Doe", result.getName());
         verify(userRepository).existsByEmail(testUserDTO.getEmail());
         verify(userRepository).save(any(User.class));
-    }
+    }*/
 
     @Test
+    void createUser_WhenEmailNotExists_ShouldCreateUser() {
+
+        when(userRepository.existsByEmail(request.getEmail()))
+                .thenReturn(false);
+
+        when(userRepository.save(any(User.class)))
+                .thenReturn(testUser);
+
+        UserDTO result = userService.createUser(request);
+
+        assertNotNull(result);
+        assertEquals("John Doe", result.getName());
+
+        verify(userRepository).existsByEmail(request.getEmail());
+        verify(userRepository).save(any(User.class));
+    }
+
+   /* @Test
     void createUser_WhenEmailAlreadyExists_ShouldThrowException() {
         when(userRepository.existsByEmail(testUserDTO.getEmail())).thenReturn(true);
 
         assertThrows(IllegalArgumentException.class, () -> userService.createUser(Request));
         verify(userRepository).existsByEmail(testUserDTO.getEmail());
         verify(userRepository, never()).save(any(User.class));
+    }*/
+
+  /*  @Test
+    void createUser_WhenEmailAlreadyExists_ShouldThrowException() {
+
+        when(userRepository.existsByEmail(request.getEmail()))
+                .thenReturn(true);
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> userService.createUser(request)
+        );
+
+        verify(userRepository).existsByEmail(request.getEmail());
+
+        verify(userRepository, never())
+                .save(any(User.class));
+    }*/
+
+    @Test
+    void createUser_WhenEmailAlreadyExists_ShouldThrowException() {
+
+        when(userRepository.existsByEmail(request.getEmail()))
+                .thenReturn(true);
+
+        EmailAlreadyExistsException exception = assertThrows(
+                EmailAlreadyExistsException.class,
+                () -> userService.createUser(request)
+        );
+
+        assertEquals("邮箱已注册", exception.getMessage());
+
+        verify(userRepository).existsByEmail(request.getEmail());
+
+        verify(userRepository, never())
+                .save(any(User.class));
     }
 
     @Test
