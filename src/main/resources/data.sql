@@ -6,7 +6,6 @@ INSERT INTO users (name, email, phone, created_at, updated_at) VALUES
 ('Alice Brown', 'alice.brown@example.com', '13968553559', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 ('Charlie Wilson', 'charlie.wilson@example.com', '13968552559', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 ('C', 'charlie.wilson@qq.com', '13968055559', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('可以', 'charlie.wilson@gmail.com', '13961555559', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 ('love', 'charlie.wilson@elove.com', '13958555559', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 ('tom', 'charlie.wilson@hao.com', '13964555559', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 ('Jerry', 'charlie.wilson@123.com', '13963555559', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
