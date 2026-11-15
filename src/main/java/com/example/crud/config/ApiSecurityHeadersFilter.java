@@ -41,7 +41,27 @@ public class ApiSecurityHeadersFilter extends OncePerRequestFilter {
         response.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
 
         // 当前项目是 API 项目，不提供网页资源，使用了较严格的策略，因为当前项目是纯 API 项目。如果以后增加 HTML 页面、前端资源或 Swagger UI，需要重新评估这条策略。
-        response.setHeader("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'");
+        //response.setHeader("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'");
+        if (request.getRequestURI().startsWith("/h2-console/")) {
+            // H2 Console 本地开发页面需要加载脚本和样式
+            response.setHeader(
+                    "Content-Security-Policy",
+                    "default-src 'self'; " +
+                            "style-src 'self' 'unsafe-inline'; " +
+                            "script-src 'self' 'unsafe-inline'; " +
+                            "img-src 'self' data:; " +
+                            "font-src 'self' data:; " +
+                            "connect-src 'self'; " +
+                            "frame-ancestors 'self';"
+            );
+        } else {
+            // 普通 API 接口继续使用严格策略
+            response.setHeader(
+                    "Content-Security-Policy",
+                    "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+            );
+        }
+
 
         // 4. 继续执行后续过滤器及 Controller
         filterChain.doFilter(request, response);
