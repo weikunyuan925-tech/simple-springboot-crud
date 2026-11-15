@@ -5,6 +5,7 @@ import com.example.crud.dto.UserDTO;
 import com.example.crud.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,12 +26,31 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping
+    /*@GetMapping
     public ResponseEntity<Map<String, Object>> getAllUsers() {
         List<UserDTO> users = userService.getAllUsers();
         Map<String, Object> response = new HashMap<>();
         response.put("users", users);
         response.put("total", users.size());
+        return ResponseEntity.ok(response);
+    }*/
+
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        validatePagination(page, size);
+
+        Page<UserDTO> userPage = userService.getAllUsers(page, size);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("users", userPage.getContent());
+        response.put("total", userPage.getTotalElements());
+        response.put("page", userPage.getNumber());
+        response.put("size", userPage.getSize());
+        response.put("totalPages", userPage.getTotalPages());
+
         return ResponseEntity.ok(response);
     }
 
@@ -46,13 +66,34 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @GetMapping("/search")
+   /* @GetMapping("/search")
     public ResponseEntity<Map<String, Object>> searchUsers(@RequestParam String name) {
         List<UserDTO> users = userService.searchUsersByName(name);
         Map<String, Object> response = new HashMap<>();
         response.put("users", users);
         response.put("total", users.size());
         response.put("searchTerm", name);
+        return ResponseEntity.ok(response);
+    }*/
+
+    @GetMapping("/search")
+    public ResponseEntity<Map<String, Object>> searchUsers(
+            @RequestParam String name,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        validatePagination(page, size);
+
+        Page<UserDTO> userPage = userService.searchUsersByName(name, page, size);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("users", userPage.getContent());
+        response.put("total", userPage.getTotalElements());
+        response.put("page", userPage.getNumber());
+        response.put("size", userPage.getSize());
+        response.put("totalPages", userPage.getTotalPages());
+        response.put("searchTerm", name);
+
         return ResponseEntity.ok(response);
     }
 
@@ -83,6 +124,17 @@ public class UserController {
         response.put("message", "User deleted successfully");
         response.put("userId", id);
         return ResponseEntity.ok(response);
+    }
+
+    private void validatePagination(int page, int size) {
+
+        if (page < 0) {
+            throw new IllegalArgumentException("page 不能小于 0");
+        }
+
+        if (size < 1 || size > 100) {
+            throw new IllegalArgumentException("size 必须在 1 到 100 之间");
+        }
     }
 
     @GetMapping("/health")

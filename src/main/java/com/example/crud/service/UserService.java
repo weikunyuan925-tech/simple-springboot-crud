@@ -7,6 +7,9 @@ import com.example.crud.exception.EmailAlreadyExistsException;
 import com.example.crud.exception.UserNotFoundException;
 import com.example.crud.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,12 +27,21 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    @Transactional(readOnly = true)
+    /*@Transactional(readOnly = true)
     public List<UserDTO> getAllUsers() {
         return userRepository.findAllOrderByCreatedAtDesc()
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }*/
+
+    @Transactional(readOnly = true)
+    public Page<UserDTO> getAllUsers(int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        return userRepository.findAllByOrderByCreatedAtDesc(pageable)
+                .map(this::convertToDTO);
     }
 
     @Transactional(readOnly = true)
@@ -54,7 +66,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }*/
 
-    @Transactional(readOnly = true)
+   /* @Transactional(readOnly = true)
     public List<UserDTO> searchUsersByName(String name) {
 
         // 防止空搜索条件导致返回全部用户
@@ -72,7 +84,28 @@ public class UserService {
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }*/
+
+    @Transactional(readOnly = true)
+    public Page<UserDTO> searchUsersByName(String name, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        // 防止空搜索条件导致返回全部用户
+        if (name == null || name.isBlank()) {
+            return Page.empty(pageable);
+        }
+
+        // 转义 LIKE 特殊字符
+        String escapedName = escapeLikeWildcards(name);
+
+        // 保留普通的前后模糊匹配
+        String pattern = "%" + escapedName + "%";
+
+        return userRepository.searchByNamePattern(pattern, pageable)
+                .map(this::convertToDTO);
     }
+
        //! 是定义的转义字符，所以必须先转义它本身，避免后续产生的转义字符再次被处理。
     private String escapeLikeWildcards(String value) {
 

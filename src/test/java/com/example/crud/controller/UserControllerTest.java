@@ -8,14 +8,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.List;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -33,7 +36,7 @@ class UserControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Test
+    /*@Test
     void getAllUsers_ShouldReturnListOfUsers() throws Exception {
         UserDTO userDTO = new UserDTO(1L, "John Doe", "john@example.com", "010-1234-5678", 
                                      LocalDateTime.now(), LocalDateTime.now());
@@ -49,20 +52,57 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.total").value(1));
 
         verify(userService).getAllUsers();
+    }*/
+
+    @Test
+    void getAllUsers_ShouldReturnPageOfUsers() throws Exception {
+
+        UserDTO userDTO = new UserDTO(1L, "John Doe", "john@example.com", "010-1234-5678", LocalDateTime.now(), LocalDateTime.now());
+
+        Page<UserDTO> userPage = new PageImpl<>(Arrays.asList(userDTO), PageRequest.of(0, 10), 1);
+
+        when(userService.getAllUsers(0, 10)).thenReturn(userPage);
+
+        mockMvc.perform(get("/api/users")).andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON)).andExpect(jsonPath("$.users").isArray()).andExpect(jsonPath("$.users[0].name").value("John Doe")).andExpect(jsonPath("$.total").value(1)).andExpect(jsonPath("$.page").value(0)).andExpect(jsonPath("$.size").value(10)).andExpect(jsonPath("$.totalPages").value(1));
+
+        verify(userService).getAllUsers(0, 10);
+    }
+
+    @Test
+    void getAllUsers_WithCustomPagination_ShouldReturnRequestedPage() throws Exception {
+
+        Page<UserDTO> userPage = new PageImpl<>(Arrays.asList(), PageRequest.of(1, 5), 12);
+
+        when(userService.getAllUsers(1, 5)).thenReturn(userPage);
+
+        mockMvc.perform(get("/api/users").param("page", "1").param("size", "5")).andExpect(status().isOk()).andExpect(jsonPath("$.page").value(1)).andExpect(jsonPath("$.size").value(5)).andExpect(jsonPath("$.total").value(12)).andExpect(jsonPath("$.totalPages").value(3));
+
+        verify(userService).getAllUsers(1, 5);
+    }
+
+    @Test
+    void getAllUsers_WithInvalidPagination_ShouldReturnBadRequest() throws Exception {
+
+        mockMvc.perform(get("/api/users").param("page", "-1").param("size", "10")).andExpect(status().isBadRequest());
+
+        verify(userService, never()).getAllUsers(anyInt(), anyInt());
+    }
+
+    @Test
+    void getAllUsers_WithOversizedPageSize_ShouldReturnBadRequest() throws Exception {
+
+        mockMvc.perform(get("/api/users").param("page", "0").param("size", "101")).andExpect(status().isBadRequest());
+
+        verify(userService, never()).getAllUsers(anyInt(), anyInt());
     }
 
     @Test
     void getUserById_ShouldReturnUser() throws Exception {
-        UserDTO userDTO = new UserDTO(1L, "John Doe", "john@example.com", "010-1234-5678", 
-                                     LocalDateTime.now(), LocalDateTime.now());
+        UserDTO userDTO = new UserDTO(1L, "John Doe", "john@example.com", "010-1234-5678", LocalDateTime.now(), LocalDateTime.now());
 
         when(userService.getUserById(1L)).thenReturn(userDTO);
 
-        mockMvc.perform(get("/api/users/1"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.name").value("John Doe"))
-                .andExpect(jsonPath("$.email").value("john@example.com"));
+        mockMvc.perform(get("/api/users/1")).andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON)).andExpect(jsonPath("$.name").value("John Doe")).andExpect(jsonPath("$.email").value("john@example.com"));
 
         verify(userService).getUserById(1L);
     }
@@ -74,17 +114,11 @@ class UserControllerTest {
         inputDTO.setEmail("john@example.com");
         inputDTO.setPhone("13812345678");
 
-        UserDTO outputDTO = new UserDTO(1L, "John Doe", "john@example.com", "010-1234-5678", 
-                                       LocalDateTime.now(), LocalDateTime.now());
+        UserDTO outputDTO = new UserDTO(1L, "John Doe", "john@example.com", "010-1234-5678", LocalDateTime.now(), LocalDateTime.now());
 
         when(userService.createUser(any(com.example.crud.dto.UserCreateRequest.class))).thenReturn(outputDTO);
 
-        mockMvc.perform(post("/api/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(inputDTO)))
-                .andExpect(status().isCreated())
-                .andDo(print())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+        mockMvc.perform(post("/api/users").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(inputDTO))).andExpect(status().isCreated()).andDo(print()).andExpect(content().contentType(MediaType.APPLICATION_JSON));
                 /*.andExpect(jsonPath("$.message").value("User created successfully"))
                 .andExpect(jsonPath("$.user.name").value("John Doe"));*/
 
@@ -103,12 +137,7 @@ class UserControllerTest {
                 .content(objectMapper.writeValueAsString(inputDTO)))
                 .andExpect(status().isBadRequest());*/
 
-        mockMvc.perform(post("/api/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(inputDTO)))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+        mockMvc.perform(post("/api/users").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(inputDTO))).andDo(print()).andExpect(status().isBadRequest()).andExpect(content().contentType(MediaType.APPLICATION_JSON));
                /* .andExpect(jsonPath("$.message").value("User created successfully"))
                 .andExpect(jsonPath("$.user.name").value("John Doe"));*/
 
@@ -122,19 +151,11 @@ class UserControllerTest {
         inputDTO.setName("John Doe");
         inputDTO.setEmail("john@example.com");
         inputDTO.setPhone("13812345878");
-        UserDTO outputDTO = new UserDTO(1L, "Updated Name", "updated@example.com", "010-9876-5432", 
-                                       LocalDateTime.now(), LocalDateTime.now());
+        UserDTO outputDTO = new UserDTO(1L, "Updated Name", "updated@example.com", "010-9876-5432", LocalDateTime.now(), LocalDateTime.now());
 
         when(userService.updateUser(eq(1L), any(UserDTO.class))).thenReturn(outputDTO);
 
-        mockMvc.perform(put("/api/users/1")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(inputDTO)))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.message").value("User updated successfully"))
-                .andExpect(jsonPath("$.user.name").value("Updated Name"))
-                .andDo(print());
+        mockMvc.perform(put("/api/users/1").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(inputDTO))).andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON)).andExpect(jsonPath("$.message").value("User updated successfully")).andExpect(jsonPath("$.user.name").value("Updated Name")).andDo(print());
 
         verify(userService).updateUser(eq(1L), any(UserDTO.class));
     }
@@ -143,21 +164,26 @@ class UserControllerTest {
     void deleteUser_ShouldDeleteUser() throws Exception {
         doNothing().when(userService).deleteUser(1L);
 
-        mockMvc.perform(delete("/api/users/1"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.message").value("User deleted successfully"))
-                .andExpect(jsonPath("$.userId").value(1));
+        mockMvc.perform(delete("/api/users/1")).andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON)).andExpect(jsonPath("$.message").value("User deleted successfully")).andExpect(jsonPath("$.userId").value(1));
 
         verify(userService).deleteUser(1L);
     }
 
     @Test
     void healthCheck_ShouldReturnHealthStatus() throws Exception {
-        mockMvc.perform(get("/api/users/health"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.status").value("UP"))
-                .andExpect(jsonPath("$.service").value("User Management API"));
+        mockMvc.perform(get("/api/users/health")).andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON)).andExpect(jsonPath("$.status").value("UP")).andExpect(jsonPath("$.service").value("User Management API"));
+    }
+
+    @Test
+    void searchUsers_ShouldReturnPageOfUsers() throws Exception {
+        UserDTO userDTO = new UserDTO(1L, "John Doe", "john@example.com", "010-1234-5678", LocalDateTime.now(), LocalDateTime.now());
+
+        Page<UserDTO> userPage = new PageImpl<>(Arrays.asList(userDTO), PageRequest.of(0, 5), 1);
+
+        when(userService.searchUsersByName("John", 0, 5)).thenReturn(userPage);
+
+        mockMvc.perform(get("/api/users/search").param("name", "John").param("page", "0").param("size", "5")).andExpect(status().isOk()).andExpect(jsonPath("$.users").isArray()).andExpect(jsonPath("$.users[0].name").value("John Doe")).andExpect(jsonPath("$.total").value(1)).andExpect(jsonPath("$.page").value(0)).andExpect(jsonPath("$.size").value(5)).andExpect(jsonPath("$.totalPages").value(1)).andExpect(jsonPath("$.searchTerm").value("John"));
+
+        verify(userService).searchUsersByName("John", 0, 5);
     }
 }

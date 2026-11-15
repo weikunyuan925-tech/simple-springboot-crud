@@ -179,4 +179,16 @@ public class GlobalExceptionHandler {
         body.put("timestamp", LocalDateTime.now());
         return body;
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalArgument(
+            IllegalArgumentException ex) {
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(buildErrorBody(
+                        400,
+                        "Bad Request",
+                        ex.getMessage()
+                ));
+    }
 }
