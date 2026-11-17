@@ -35,11 +35,24 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // 分页搜索用户，保留 LIKE 特殊字符转义
     @Query("SELECT u FROM User u WHERE u.name LIKE :pattern ESCAPE '!'")
-    Page<User> searchByNamePattern(@Param("pattern") String pattern ,Pageable pageable);
+    Page<User> searchByNamePattern(@Param("pattern") String pattern, Pageable pageable);
 
     // 按创建时间倒序分页查询全部用户
     Page<User> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
     //Page<User> findByNameContaining(String name,Pageable pageable);
+
+    // 按所属账号分页查询资料
+    Page<User> findAllByOwner_IdOrderByCreatedAtDesc(Long ownerId, Pageable pageable);
+
+    // 按资料 ID 和所属账号查询，防止跨账号访问
+    Optional<User> findByIdAndOwner_Id(Long id, Long ownerId);
+
+    // 按所属账号和邮箱查询
+    Optional<User> findByEmailAndOwner_Id(String email, Long ownerId);
+
+    // 按所属账号搜索姓名，保留 LIKE 特殊字符转义
+    @Query("SELECT u FROM User u WHERE u.owner.id = :ownerId AND u.name LIKE :pattern ESCAPE '!'")
+    Page<User> searchByOwnerIdAndNamePattern(@Param("ownerId") Long ownerId, @Param("pattern") String pattern, Pageable pageable);
 
 }

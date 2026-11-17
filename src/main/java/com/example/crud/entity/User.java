@@ -33,6 +33,11 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // 业务资料所属的登录账号
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private SysUser owner;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -98,5 +103,13 @@ public class User {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public SysUser getOwner() {
+        return owner;
+    }
+
+    public void setOwner(SysUser owner) {
+        this.owner = owner;
     }
 }
