@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-
+import com.example.crud.entity.SysUser;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,16 +21,26 @@ class UserRepositoryTest {
     @Autowired
     private UserRepository userRepository;
 
+    private SysUser testOwner;
+
     @BeforeEach
     void setUp() {
         // 清理数据库中已有的用户数据
         userRepository.deleteAll();
         userRepository.flush();
+
+        SysUser owner = new SysUser();
+        owner.setUsername("repository_test_user");
+        owner.setPassword("test-password");
+        owner.setRole("USER");
+
+        testOwner = entityManager.persistAndFlush(owner);
     }
 
     @Test
     void findByEmail_WhenUserExists_ShouldReturnUser() {
         User user = new User("John Doe", "john@example.com", "010-1234-5678");
+        user.setOwner(testOwner);
         entityManager.persistAndFlush(user);
 
         Optional<User> found = userRepository.findByEmail("john@example.com");
@@ -49,7 +59,9 @@ class UserRepositoryTest {
 
     @Test
     void existsByEmail_WhenUserExists_ShouldReturnTrue() {
+
         User user = new User("John Doe", "john@example.com", "010-1234-5678");
+        user.setOwner(testOwner);
         entityManager.persistAndFlush(user);
 
         boolean exists = userRepository.existsByEmail("john@example.com");
@@ -100,7 +112,7 @@ class UserRepositoryTest {
     @Test
     void save_ShouldPersistUser() {
         User user = new User("Test User", "test@example.com", "010-1234-5678");
-
+        user.setOwner(testOwner);
         User saved = userRepository.save(user);
 
         assertNotNull(saved.getId());
@@ -113,6 +125,7 @@ class UserRepositoryTest {
     @Test
     void deleteById_ShouldRemoveUser() {
         User user = new User("To Delete", "delete@example.com", "010-1234-5678");
+        user.setOwner(testOwner);
         User saved = entityManager.persistAndFlush(user);
 
         userRepository.deleteById(saved.getId());
