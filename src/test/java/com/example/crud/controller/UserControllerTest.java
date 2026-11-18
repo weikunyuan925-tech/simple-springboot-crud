@@ -1,5 +1,6 @@
 package com.example.crud.controller;
 
+import com.example.crud.config.SecurityConfig;
 import com.example.crud.dto.UserCreateRequest;
 import com.example.crud.dto.UserDTO;
 import com.example.crud.service.UserService;
@@ -8,15 +9,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
+import com.example.crud.service.JwtService;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-
+import org.springframework.security.test.context.support.WithMockUser;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -25,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UserController.class)
+@Import(SecurityConfig.class)
 class UserControllerTest {
 
     @Autowired
@@ -32,6 +36,12 @@ class UserControllerTest {
 
     @MockBean
     private UserService userService;
+
+    @MockBean
+    private JwtService jwtService;
+
+    @MockBean
+    private UserDetailsService userDetailsService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -55,6 +65,7 @@ class UserControllerTest {
     }*/
 
     @Test
+    @WithMockUser
     void getAllUsers_ShouldReturnPageOfUsers() throws Exception {
 
         UserDTO userDTO = new UserDTO(1L, "John Doe", "john@example.com", "010-1234-5678", LocalDateTime.now(), LocalDateTime.now());
@@ -69,6 +80,7 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser
     void getAllUsers_WithCustomPagination_ShouldReturnRequestedPage() throws Exception {
 
         Page<UserDTO> userPage = new PageImpl<>(Arrays.asList(), PageRequest.of(1, 5), 12);
@@ -81,6 +93,7 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser
     void getAllUsers_WithInvalidPagination_ShouldReturnBadRequest() throws Exception {
 
         mockMvc.perform(get("/api/users").param("page", "-1").param("size", "10")).andExpect(status().isBadRequest());
@@ -89,6 +102,7 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser
     void getAllUsers_WithOversizedPageSize_ShouldReturnBadRequest() throws Exception {
 
         mockMvc.perform(get("/api/users").param("page", "0").param("size", "101")).andExpect(status().isBadRequest());
@@ -97,6 +111,7 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser
     void getUserById_ShouldReturnUser() throws Exception {
         UserDTO userDTO = new UserDTO(1L, "John Doe", "john@example.com", "010-1234-5678", LocalDateTime.now(), LocalDateTime.now());
 
@@ -108,6 +123,7 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser
     void createUser_WithValidData_ShouldCreateUser() throws Exception {
         UserCreateRequest inputDTO = new UserCreateRequest();
         inputDTO.setName("John Doe");
@@ -126,6 +142,7 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser
     void createUser_WithInvalidData_ShouldReturnBadRequest() throws Exception {
         UserCreateRequest inputDTO = new UserCreateRequest();
         inputDTO.setName(""); // Invalid: empty name
@@ -145,6 +162,7 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser
     void updateUser_WithValidData_ShouldUpdateUser() throws Exception {
         UserCreateRequest inputDTO = new UserCreateRequest();
 
@@ -161,6 +179,7 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser
     void deleteUser_ShouldDeleteUser() throws Exception {
         doNothing().when(userService).deleteUser(1L);
 
@@ -175,6 +194,7 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser
     void searchUsers_ShouldReturnPageOfUsers() throws Exception {
         UserDTO userDTO = new UserDTO(1L, "John Doe", "john@example.com", "010-1234-5678", LocalDateTime.now(), LocalDateTime.now());
 

@@ -33,6 +33,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByEmail(String email);
 
+    boolean existsByEmailAndIdNot(String email, Long id);
+
     // 分页搜索用户，保留 LIKE 特殊字符转义
     @Query("SELECT u FROM User u WHERE u.name LIKE :pattern ESCAPE '!'")
     Page<User> searchByNamePattern(@Param("pattern") String pattern, Pageable pageable);

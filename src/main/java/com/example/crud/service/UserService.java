@@ -18,6 +18,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
+
 @Service
 @Transactional
 public class UserService {
@@ -173,7 +175,12 @@ public class UserService {
         User existingUser = userRepository.findByIdAndOwner_Id(id, owner.getId())
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
 
-        if (userRepository.existsByEmail(userDTO.getEmail())) {
+       /* if (userRepository.existsByEmail(userDTO.getEmail()) && !Objects.equals(userDTO.getEmail(), existingUser.getEmail())) {
+            throw new EmailAlreadyExistsException("邮箱已注册");
+        }*/
+        //与上面的写法的区别，不需要先查询邮箱是否存在，再进行 Java 层比较，另外，数据库唯一约束仍然必须保留。应用层检查不能完全防止两个并发请求同时通过检查的问题。
+        if (userRepository.existsByEmailAndIdNot(
+                userDTO.getEmail(), existingUser.getId())) {
             throw new EmailAlreadyExistsException("邮箱已注册");
         }
 

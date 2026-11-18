@@ -90,6 +90,12 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!--test add token -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
 
     </dependencies>
 
