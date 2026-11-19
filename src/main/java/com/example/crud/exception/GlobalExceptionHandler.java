@@ -1,5 +1,7 @@
 package com.example.crud.exception;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -21,6 +24,9 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final Logger log =
+            LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleUserNotFoundException(UserNotFoundException ex) {
         Map<String, Object> errorResponse = new HashMap<>();
@@ -28,7 +34,7 @@ public class GlobalExceptionHandler {
         errorResponse.put("status", HttpStatus.NOT_FOUND.value());
         errorResponse.put("error", "Not Found");
         errorResponse.put("message", ex.getMessage());
-        
+
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
@@ -36,29 +42,30 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, Object> errorResponse = new HashMap<>();
         Map<String, String> errors = new HashMap<>();
-        
+
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-        
+
         errorResponse.put("timestamp", LocalDateTime.now());
         errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
         errorResponse.put("error", "Validation Failed");
         errorResponse.put("errors", errors);
-        
+
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
+        log.error("Unhandled exception occurred", ex);
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("timestamp", LocalDateTime.now());
         errorResponse.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
         errorResponse.put("error", "Internal Server Error");
         errorResponse.put("message", "An unexpected error occurred");
-        
+
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -112,7 +119,7 @@ public class GlobalExceptionHandler {
             NoHandlerFoundException ex) {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(buildErrorBody(404,"Not Found", "请求的接口不存在"));
+                .body(buildErrorBody(404, "Not Found", "请求的接口不存在"));
     }
 
 
@@ -125,7 +132,7 @@ public class GlobalExceptionHandler {
             NoResourceFoundException ex) {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(buildErrorBody(404,"Not Found", "请求的接口或资源不存在"));
+                .body(buildErrorBody(404, "Not Found", "请求的接口或资源不存在"));
     }
 
 
@@ -138,7 +145,7 @@ public class GlobalExceptionHandler {
             MethodArgumentTypeMismatchException ex) {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(buildErrorBody(400,"Bad Request", "请求参数格式不正确：" + ex.getName()));
+                .body(buildErrorBody(400, "Bad Request", "请求参数格式不正确：" + ex.getName()));
     }
 
 
@@ -150,7 +157,7 @@ public class GlobalExceptionHandler {
             HttpMessageNotReadableException ex) {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(buildErrorBody(400,"Bad Request", "请求体为空或 JSON 格式不正确"));
+                .body(buildErrorBody(400, "Bad Request", "请求体为空或 JSON 格式不正确"));
     }
 
 
@@ -162,7 +169,7 @@ public class GlobalExceptionHandler {
             HttpMediaTypeNotSupportedException ex) {
 
         return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-                .body(buildErrorBody(415,"Unsupported Media Type",
+                .body(buildErrorBody(415, "Unsupported Media Type",
                         "不支持的 Content-Type，请使用 application/json"));
 
     }
@@ -189,6 +196,22 @@ public class GlobalExceptionHandler {
                         400,
                         "Bad Request",
                         ex.getMessage()
+                ));
+    }
+
+    /*
+     * 无参异常响应内容
+     *
+     * */
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<Map<String, Object>> handleMissingParameter(
+            MissingServletRequestParameterException ex) {
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(buildErrorBody(
+                        400,
+                        "Bad Request",
+                        "缺少必填请求参数：" + ex.getParameterName()
                 ));
     }
 }
