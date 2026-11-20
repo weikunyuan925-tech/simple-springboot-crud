@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -29,14 +31,14 @@ public class SecurityConfig {
 
         http
                 // REST API 使用 JWT，不使用 CSRF 表单认证
-                .csrf(csrf -> csrf
+                /*.csrf(csrf -> csrf
                         .ignoringRequestMatchers("/h2-console/**")
                         .disable()
-                )
+                )*/
 
                 // H2 Console 使用 iframe，需要允许同源页面
                 .headers(headers -> headers
-                        .frameOptions(frame -> frame.sameOrigin())
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
                 )
 
                 // 无状态认证，不创建 HTTP Session,每次请求都必须通过 JWT 识别用户，不依赖服务器 Session。
@@ -50,15 +52,15 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/register",
                                 "/api/auth/login",
-                                "/api/users/health",
-                                "/h2-console/**"
+                                "/api/users/health"
+                                //,"/h2-console/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
 
                 // 关闭默认表单登录和 HTTP Basic
-                .formLogin(form -> form.disable())
-                .httpBasic(basic -> basic.disable())
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
 
                 // 未认证返回 401，权限不足返回 403
                 .exceptionHandling(ex -> ex
