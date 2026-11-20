@@ -35,6 +35,9 @@ public class SecurityConfig {
                         .ignoringRequestMatchers("/h2-console/**")
                         .disable()
                 )*/
+                // REST API 使用 JWT，无状态认证，关闭 CSRF
+                .csrf(AbstractHttpConfigurer::disable)
+
 
                 // H2 Console 使用 iframe，需要允许同源页面
                 .headers(headers -> headers

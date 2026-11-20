@@ -5,6 +5,7 @@ import com.example.crud.entity.SysUser;
 import com.example.crud.entity.User;
 import com.example.crud.repository.SysUserRepository;
 import com.example.crud.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,6 +17,15 @@ import org.springframework.stereotype.Component;
         havingValue = "true"
 )
 public class DataInitializer implements CommandLineRunner {
+
+    @Value("${app.seed.user-a.password}")
+    private String userAPassword;
+
+    @Value("${app.seed.user-b.password}")
+    private String userBPassword;
+
+    @Value("${app.seed.admin.password}")
+    private String adminPassword;
 
     private final SysUserRepository sysUserRepository;
     private final UserRepository userRepository;
@@ -36,20 +46,20 @@ public class DataInitializer implements CommandLineRunner {
 
         // 创建三个测试账号
         SysUser userA = createAccount(
-                "AuditUserA#2026",
-                "AuditUserA#2026",
+                "audit_user_a",
+                userAPassword,
                 "USER"
         );
 
         SysUser userB = createAccount(
                 "audit_user_b",
-                "AuditUserB#2026",
+                userBPassword,
                 "USER"
         );
 
         SysUser admin = createAccount(
                 "audit_admin",
-                "AuditAdmin#2026",
+                adminPassword,
                 "ADMIN"
         );
 
@@ -81,6 +91,7 @@ public class DataInitializer implements CommandLineRunner {
                 .orElseGet(() -> {
                     SysUser sysUser = new SysUser();
                     sysUser.setUsername(username);
+                    //Spring Security 的 `PasswordEncoder` 对密码进行 BCrypt 加密
                     sysUser.setPassword(
                             passwordEncoder.encode(rawPassword)
                     );
