@@ -53,7 +53,7 @@ class SecurityRegressionTest {
         mockMvc.perform(
                         get("/api/users")
                 )
-                .andDo(print())
+                //.andDo(print())
                 .andExpect(status().isUnauthorized());
     }
 
@@ -69,7 +69,7 @@ class SecurityRegressionTest {
         mockMvc.perform(
                         get("/api/users/1")
                 )
-                .andDo(print())
+                //.andDo(print())
                 .andExpect(status().isUnauthorized());
     }
 
@@ -85,7 +85,7 @@ class SecurityRegressionTest {
         mockMvc.perform(
                         get("/api/users/health")
                 )
-                .andDo(print())
+                //.andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("UP"))
                 .andExpect(jsonPath("$.service")
@@ -108,7 +108,7 @@ class SecurityRegressionTest {
                                         "Bearer invalid-test-token"
                                 )
                 )
-                .andDo(print())
+                //.andDo(print())
                 .andExpect(status().isUnauthorized());
     }
 
@@ -154,7 +154,7 @@ class SecurityRegressionTest {
                                         loginRequest
                                 ))
                 )
-                .andDo(print())
+                //.andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(
                         MediaType.APPLICATION_JSON
