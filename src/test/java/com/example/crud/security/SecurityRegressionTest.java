@@ -2,11 +2,13 @@ package com.example.crud.security;
 
 import com.example.crud.entity.SysUser;
 import com.example.crud.repository.SysUserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import tools.jackson.databind.ObjectMapper;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
