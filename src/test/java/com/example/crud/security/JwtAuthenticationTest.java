@@ -131,6 +131,38 @@ class JwtAuthenticationTest {
                 .andExpect(jsonPath("$.expiresIn").value(900));
     }
 
+
+    /**
+     * JWT-01-NEG
+     * 使用正确用户名、错误密码登录
+     * 预期：401 Unauthorized
+     */
+    @Test
+    @DisplayName("JWT-01-NEG 错误密码登录应返回401")
+    void jwt01_wrongPasswordReturns401() throws Exception {
+
+        Map<String, String> loginRequest = Map.of(
+                "username", TEST_USERNAME,
+                "password", "WrongPassword123!"
+        );
+
+        mockMvc.perform(
+                        post("/api/auth/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        objectMapper.writeValueAsString(
+                                                loginRequest
+                                        )
+                                )
+                )
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.message")
+                        .value("用户名或密码错误"));
+    }
+
+
+
     /**
      * JWT-02
      * 使用有效 JWT 访问用户列表
